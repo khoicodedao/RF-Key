@@ -12,7 +12,7 @@ import {
   deleteLicense,
 } from "./features/api";
 import type { License } from "./features/types";
-
+import { UnitTree } from "@/components/UnitTree/UnitTree";
 export default function LicensesPage() {
   const [items, setItems] = React.useState<License[]>([]);
   const [open, setOpen] = React.useState(false);
@@ -51,11 +51,23 @@ export default function LicensesPage() {
           New License
         </Button>
       </div>
-      <DataTable
-        columns={columns}
-        data={items}
-        globalFilterPlaceholder="Search license/UID/MAC/IP…"
-      />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
+        <div className="lg:col-span-7">
+          <DataTable
+            columns={columns}
+            data={items}
+            globalFilterPlaceholder="Search license/UID/MAC/IP…"
+          />
+        </div>
+
+        <div className="lg:col-span-3">
+          <UnitTree
+            fetchUrl="/api/units"
+            onSelect={(u) => console.log(u.unit_code)}
+          />
+        </div>
+      </div>
+
       <LicenseFormDialog
         open={open}
         onOpenChange={setOpen}
