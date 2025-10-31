@@ -9,8 +9,23 @@ import { fetchUnits, createUnit, updateUnit, deleteUnit } from "./features/api";
 import type { Unit } from "./features/types";
 
 // Ant Design
-import { Table, Tag, Tooltip, ConfigProvider, theme } from "antd";
+import {
+  Table,
+  Tag,
+  Tooltip,
+  ConfigProvider,
+  theme,
+  Modal,
+  Descriptions,
+  Popconfirm,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
+import {
+  EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 
 type UnitTreeNode = Unit & { children?: UnitTreeNode[] };
 
@@ -38,7 +53,7 @@ function buildTree(items: Unit[]): UnitTreeNode[] {
   for (const node of map.values()) {
     const parentCode = node.parent_unit_code;
 
-    // Trường hợp root: parent null hoặc tự trỏ vào chính nó
+    // Root khi parent null / tự trỏ / parent không tồn tại
     if (!parentCode || parentCode === node.unit_code || !map.has(parentCode)) {
       roots.push(node);
     } else {
@@ -46,7 +61,7 @@ function buildTree(items: Unit[]): UnitTreeNode[] {
     }
   }
 
-  // Sắp xếp nhẹ theo level và tên
+  // Sort theo level rồi theo tên
   const sortTree = (arr: UnitTreeNode[]) => {
     arr.sort(
       (a, b) =>
@@ -62,6 +77,10 @@ export default function UnitsPage() {
   const [items, setItems] = React.useState<Unit[]>([]);
   const [open, setOpen] = React.useState(false);
   const [editItem, setEditItem] = React.useState<Unit | null>(null);
+
+  // View modal state
+  const [viewOpen, setViewOpen] = React.useState(false);
+  const [viewItem, setViewItem] = React.useState<Unit | null>(null);
 
   const load = React.useCallback(async () => {
     try {
@@ -117,38 +136,40 @@ export default function UnitsPage() {
     {
       title: "Domains",
       key: "domains",
-      width: 160,
+      width: 180,
       render: (_, r) => {
         const log = r.domains_log?.length ?? 0;
         const upd = r.domains_update?.length ?? 0;
         const ctl = r.domains_control?.length ?? 0;
-        const any =
-          (r.domains_log || r.domains_update || r.domains_control || [])
-            .length > 0;
+        const hasAny =
+          (r.domains_log?.length || 0) +
+            (r.domains_update?.length || 0) +
+            (r.domains_control?.length || 0) >
+          0;
 
         const content = (
           <div className="space-y-1">
             {(r.domains_log || []).map((d) => (
-              <div key={`log-${d}`}>{d}</div>
+              <div key={`log-${d}`}>log: {d}</div>
             ))}
             {(r.domains_update || []).map((d) => (
-              <div key={`upd-${d}`}>{d}</div>
+              <div key={`upd-${d}`}>update: {d}</div>
             ))}
             {(r.domains_control || []).map((d) => (
-              <div key={`ctl-${d}`}>{d}</div>
+              <div key={`ctl-${d}`}>control: {d}</div>
             ))}
           </div>
         );
 
         const tags = (
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             <Tag>log: {log}</Tag>
             <Tag>update: {upd}</Tag>
             <Tag>control: {ctl}</Tag>
           </div>
         );
 
-        return any ? <Tooltip title={content}>{tags}</Tooltip> : tags;
+        return hasAny ? <Tooltip title={content}>{tags}</Tooltip> : tags;
       },
     },
     {
@@ -166,34 +187,60 @@ export default function UnitsPage() {
       title: "Thao tác",
       key: "actions",
       fixed: "right",
-      width: 160,
+      width: 220,
       render: (_, u) => (
-        <div className="flex gap-2">
-          <Button
-            // @ts-ignore
-            variant="outline"
-            onClick={() => alert(JSON.stringify(u, null, 2))}
-          >
-            Xem
-          </Button>
-          <Button
-            onClick={() => {
-              setEditItem(u);
-              setOpen(true);
-            }}
-          >
-            Sửa
-          </Button>
-          <Button
-            // @ts-ignore
-            variant="destructive"
-            onClick={async () => {
+        <div className="flex items-center gap-2">
+          {/* Xem chi tiết */}
+          <Tooltip title="Xem chi tiết">
+            <Tag
+              color="blue"
+              icon={<EyeOutlined />}
+              className="cursor-pointer"
+              onClick={() => {
+                setViewItem(u);
+                setViewOpen(true);
+              }}
+            >
+              Xem
+            </Tag>
+          </Tooltip>
+
+          {/* Sửa */}
+          <Tooltip title="Sửa đơn vị">
+            <Tag
+              color="orange"
+              icon={<EditOutlined />}
+              className="cursor-pointer"
+              onClick={() => {
+                setEditItem(u);
+                setOpen(true);
+              }}
+            >
+              Sửa
+            </Tag>
+          </Tooltip>
+
+          {/* Xóa với xác nhận */}
+          <Popconfirm
+            title="Xóa đơn vị"
+            description={`Bạn có chắc muốn xóa "${u.unit_name}"?`}
+            okText="Xóa"
+            cancelText="Hủy"
+            onConfirm={async () => {
               await deleteUnit(u.unit_code);
               load();
             }}
           >
-            Xóa
-          </Button>
+            <Tooltip title="Xóa đơn vị">
+              <Tag
+                color="red"
+                icon={<DeleteOutlined />}
+                className="cursor-pointer"
+              >
+                Xóa
+              </Tag>
+            </Tooltip>
+          </Popconfirm>
         </div>
       ),
     },
@@ -208,23 +255,15 @@ export default function UnitsPage() {
             setEditItem(null);
             setOpen(true);
           }}
+          className="inline-flex items-center gap-2"
         >
+          <PlusOutlined />
           New Unit
         </Button>
       </div>
 
       {/* AntD Table (tree) + Dark mode */}
-      <ConfigProvider
-        theme={{
-          algorithm: theme.darkAlgorithm, // tôn trọng dark mode
-          token: {
-            // để Table hòa hợp với nền Tailwind dark
-            colorBgContainer: "transparent",
-            colorText: "inherit",
-            colorBorderSecondary: "rgba(255,255,255,0.12)",
-          },
-        }}
-      >
+      <ConfigProvider>
         <Table<UnitTreeNode>
           columns={columns}
           dataSource={treeData}
@@ -232,13 +271,18 @@ export default function UnitsPage() {
           pagination={false}
           size="middle"
           expandable={{
-            defaultExpandAllRows: true,
-            indentSize: 16,
+            defaultExpandedRowKeys: items
+              .filter(
+                (u) =>
+                  !u.parent_unit_code || u.parent_unit_code === u.unit_code, // root hoặc tự trỏ
+              )
+              .map((u) => u.unit_code),
           }}
           scroll={{ x: 980 }}
         />
       </ConfigProvider>
 
+      {/* Form thêm/sửa */}
       <UnitFormDialog
         open={open}
         onOpenChange={setOpen}
@@ -247,7 +291,6 @@ export default function UnitsPage() {
         onSubmit={async (v) => {
           if (editItem) {
             // @ts-ignore
-
             await updateUnit(editItem.unit_code, v);
           } else {
             await createUnit({
@@ -258,6 +301,59 @@ export default function UnitsPage() {
           load();
         }}
       />
+
+      {/* Modal xem chi tiết */}
+      <Modal
+        open={viewOpen}
+        onCancel={() => setViewOpen(false)}
+        footer={null}
+        title={viewItem ? `Chi tiết: ${viewItem.unit_name}` : "Chi tiết đơn vị"}
+        centered
+        width={720}
+      >
+        {viewItem && (
+          <Descriptions
+            column={{ xs: 1, sm: 1, md: 2 }}
+            bordered
+            size="small"
+            labelStyle={{ width: 160 }}
+          >
+            <Descriptions.Item label="Mã đơn vị">
+              {viewItem.unit_code}
+            </Descriptions.Item>
+            <Descriptions.Item label="Tên đơn vị">
+              {viewItem.unit_name}
+            </Descriptions.Item>
+            <Descriptions.Item label="Tên đầy đủ">
+              {viewItem.full_name || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Miền">
+              {regionLabel(viewItem.region)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Level">
+              {viewItem.level}
+            </Descriptions.Item>
+            <Descriptions.Item label="Đơn vị cha">
+              {viewItem.parent_unit_code || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Domains (log)">
+              {(viewItem.domains_log || []).join(", ") || "0"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Domains (update)">
+              {(viewItem.domains_update || []).join(", ") || "0"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Domains (control)">
+              {(viewItem.domains_control || []).join(", ") || "0"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Tạo lúc">
+              {dayjs(viewItem.created_at).format("YYYY-MM-DD HH:mm")}
+            </Descriptions.Item>
+            <Descriptions.Item label="Cập nhật lúc">
+              {dayjs(viewItem.updated_at).format("YYYY-MM-DD HH:mm")}
+            </Descriptions.Item>
+          </Descriptions>
+        )}
+      </Modal>
     </div>
   );
 }
