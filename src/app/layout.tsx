@@ -1,6 +1,6 @@
 import "@/css/font-vn.css";
 import "@/css/style.css";
-
+import "@ant-design/v5-patch-for-react-19";
 import { Sidebar } from "@/components/Layouts/sidebar";
 
 import "flatpickr/dist/flatpickr.min.css";
