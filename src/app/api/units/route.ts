@@ -1,6 +1,7 @@
 // app/api/units/route.ts
 import { NextResponse } from "next/server";
-
+import axios from "axios";
+const BASE_URL = process.env.BASE_URL || "http://localhost:5000"; // fallback
 export type Unit = {
   unit_code: string;
   parent_unit_code: string | null;
@@ -50,34 +51,32 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json()) as Partial<Unit>;
-  const now = new Date().toISOString();
+  try {
+    // Lấy token từ header gốc
+    const authHeader = req.headers.get("authorization");
 
-  if (!body.unit_code || !body.unit_name || !body.full_name || !body.region) {
+    // Lấy body request để forward
+    const body = await req.json();
+
+    // Gửi request đến server đích
+    const response = await axios.post(`${BASE_URL}/api/units/paginate`, body, {
+      headers: {
+        Authorization: authHeader || "",
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Trả response từ server đích về client
+    return NextResponse.json(response.data, { status: response.status });
+  } catch (error: any) {
+    console.error("Forward error:", error.message);
+
     return NextResponse.json(
-      { ok: false, error: "Missing required fields" },
-      { status: 400 },
+      {
+        ok: false,
+        error: error.response?.data || error.message,
+      },
+      { status: error.response?.status || 500 },
     );
   }
-  if (units.some((u) => u.unit_code === body.unit_code)) {
-    return NextResponse.json(
-      { ok: false, error: "unit_code already exists" },
-      { status: 400 },
-    );
-  }
-
-  const item: Unit = {
-    unit_code: body.unit_code,
-    parent_unit_code:
-      typeof body.parent_unit_code === "string" ? body.parent_unit_code : null,
-    unit_name: body.unit_name,
-    full_name: body.full_name,
-    region: body.region as Unit["region"],
-    level: typeof body.level === "number" ? body.level : 1,
-    created_at: now,
-    updated_at: now,
-  };
-
-  units.push(item);
-  return NextResponse.json({ ok: true, item });
 }

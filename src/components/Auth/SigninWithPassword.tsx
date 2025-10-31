@@ -4,7 +4,9 @@ import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import InputGroup from "../FormElements/InputGroup";
 import { Checkbox } from "../FormElements/checkbox";
+// @ts-ignore
 import speakeasy from "speakeasy";
+//@ts-ignore
 import QRCode from "qrcode";
 import base32 from "base32.js"; // Thư viện để chuyển từ base32 sang buffer
 
