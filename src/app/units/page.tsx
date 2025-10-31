@@ -170,6 +170,7 @@ export default function UnitsPage() {
       render: (_, u) => (
         <div className="flex gap-2">
           <Button
+            // @ts-ignore
             variant="outline"
             onClick={() => alert(JSON.stringify(u, null, 2))}
           >
@@ -184,6 +185,7 @@ export default function UnitsPage() {
             Sửa
           </Button>
           <Button
+            // @ts-ignore
             variant="destructive"
             onClick={async () => {
               await deleteUnit(u.unit_code);
@@ -244,6 +246,8 @@ export default function UnitsPage() {
         defaultValues={editItem ?? undefined}
         onSubmit={async (v) => {
           if (editItem) {
+            // @ts-ignore
+
             await updateUnit(editItem.unit_code, v);
           } else {
             await createUnit({

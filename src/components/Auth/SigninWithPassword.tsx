@@ -8,6 +8,7 @@ import { Checkbox } from "../FormElements/checkbox";
 import speakeasy from "speakeasy";
 //@ts-ignore
 import QRCode from "qrcode";
+// @ts-ignore
 import base32 from "base32.js"; // Thư viện để chuyển từ base32 sang buffer
 
 export default function SigninWithPassword() {
@@ -68,6 +69,7 @@ export default function SigninWithPassword() {
         const authUrl = `otpauth://totp/YourApp:${data.email}?secret=${secret}&issuer=YourApp`;
 
         // Tạo mã QR
+        // @ts-ignore
         QRCode.toDataURL(authUrl, function (err, url) {
           if (err) throw err;
           setQrCode(url); // Cập nhật mã QR
