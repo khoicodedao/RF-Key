@@ -9,9 +9,23 @@ import speakeasy from "speakeasy";
 //@ts-ignore
 import QRCode from "qrcode";
 // @ts-ignore
-import base32 from "base32.js"; // Thư viện để chuyển từ base32 sang buffer
+import base32 from "base32.js";
+import { useRouter } from "next/navigation";
+
+type LoginApiResponse = {
+  code: number;
+  message: string;
+  count: number;
+  data: Array<{
+    user_name: string;
+    role: string;
+    token: string;
+    password?: string;
+  }>;
+};
 
 export default function SigninWithPassword() {
+  const router = useRouter();
   const [data, setData] = useState({
     email: process.env.NEXT_PUBLIC_DEMO_USER_MAIL || "",
     password: process.env.NEXT_PUBLIC_DEMO_USER_PASS || "",
@@ -19,101 +33,121 @@ export default function SigninWithPassword() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Trạng thái xác thực
-  const [qrCode, setQrCode] = useState<string>(""); // Mã QR
-  const [otp, setOtp] = useState(""); // Mã OTP người dùng nhập
-  const [error, setError] = useState(""); // Lỗi nếu có
-  const [userSecret, setUserSecret] = useState<string>(""); // Lưu trữ userSecret vào state
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Sau khi pass bước user/pass -> yêu cầu OTP
+  const [qrCode, setQrCode] = useState<string>("");
+  const [otp, setOtp] = useState("");
+  const [error, setError] = useState("");
+  const [userSecret, setUserSecret] = useState<string>("");
 
-  // Mật khẩu hardcoded
-  const hardcodedEmail =
-    process.env.NEXT_PUBLIC_DEMO_USER_MAIL || "dangkhoi29mta@gmail.com";
-  const hardcodedPassword = process.env.NEXT_PUBLIC_DEMO_USER_PASS || "123456";
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setData({
-      ...data,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  // Kiểm tra xem userSecret đã tồn tại trong cơ sở dữ liệu chưa
+  // Lấy secret đã lưu (nếu có)
   useEffect(() => {
-    // Giả sử bạn lấy userSecret từ cơ sở dữ liệu sau khi người dùng đã kích hoạt 2FA
-    const storedSecret = localStorage.getItem("userSecret"); // Lấy userSecret từ localStorage hoặc cơ sở dữ liệu
-    if (storedSecret) {
-      setUserSecret(storedSecret); // Nếu có, gán lại vào state
-    }
+    const storedSecret = localStorage.getItem("userSecret");
+    if (storedSecret) setUserSecret(storedSecret);
   }, []);
 
-  // Tạo userSecret mới khi người dùng đăng nhập lần đầu
-  const generateUserSecret = () => {
-    const secret = speakeasy.generateSecret({ length: 20 });
-    setUserSecret(secret.base32); // Lưu userSecret vào state
-    localStorage.setItem("userSecret", secret.base32); // Lưu userSecret vào localStorage (hoặc cơ sở dữ liệu)
-    return secret.base32; // Trả về secret base32 để sử dụng cho OTP
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleLoginSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // Tạo secret cho 2FA nếu chưa có
+  const generateUserSecret = () => {
+    const secret = speakeasy.generateSecret({ length: 20 });
+    setUserSecret(secret.base32);
+    localStorage.setItem("userSecret", secret.base32);
+    return secret.base32;
+  };
+
+  // ✅ Sửa tại đây: call API /api/login với body { user_name, password }
+  const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     setLoading(true);
+    setError("");
 
-    // Kiểm tra email và mật khẩu
-    if (data.email === hardcodedEmail && data.password === hardcodedPassword) {
-      if (!userSecret) {
-        // Nếu userSecret chưa có trong state (chưa được tạo), tạo mới
-        const secret = generateUserSecret();
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_name: data.email,
+          password: data.password,
+        }),
+      });
 
-        // Tạo mã QR sau khi đăng nhập thành công
-        const authUrl = `otpauth://totp/YourApp:${data.email}?secret=${secret}&issuer=YourApp`;
+      const json: LoginApiResponse = await res.json();
 
-        // Tạo mã QR
-        // @ts-ignore
-        QRCode.toDataURL(authUrl, function (err, url) {
-          if (err) throw err;
-          setQrCode(url); // Cập nhật mã QR
-        });
+      if (!res.ok || json.code !== 200) {
+        throw new Error(
+          (json as any)?.error?.message ||
+            json?.message ||
+            "Login failed. Please check your credentials.",
+        );
       }
 
-      // Đánh dấu là đã đăng nhập, yêu cầu OTP
-      setIsAuthenticated(true);
-    } else {
-      setError("Invalid email or password.");
-    }
+      // Lấy token & user
+      const user = json?.data?.[0];
+      const token = user?.token;
 
-    setLoading(false);
+      // 👉 Lưu token vào localStorage
+      // Có thể lưu kèm user & time để tiện kiểm soát
+      if (token) {
+        const payload = {
+          token,
+          user: {
+            user_name: user?.user_name,
+            role: user?.role,
+          },
+          // optional: lưu thời điểm để tự refresh/đăng xuất
+          savedAt: Date.now(),
+        };
+
+        // Nhớ đăng nhập lâu hơn nếu "Remember me"
+        // localStorage: lưu bền (qua reload/đóng tab); sessionStorage: chỉ trong tab
+        if (data.remember) {
+          localStorage.setItem("auth", JSON.stringify(payload));
+        } else {
+          sessionStorage.setItem("auth", JSON.stringify(payload));
+        }
+      }
+
+      // Tạo secret 2FA nếu chưa có và chuyển sang OTP
+      let secretToUse = userSecret || generateUserSecret();
+      const authUrl = `otpauth://totp/YourApp:${data.email}?secret=${secretToUse}&issuer=YourApp`;
+      // @ts-ignore
+      const url = await QRCode.toDataURL(authUrl);
+      setQrCode(url);
+      setIsAuthenticated(true);
+    } catch (err: any) {
+      setError(err?.message || "Login error.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOtpSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Kiểm tra xem userSecret có phải là chuỗi base32 hợp lệ không
-    if (!userSecret || userSecret.length === 0) {
+    if (!userSecret) {
       setError("Invalid secret key.");
       return;
     }
-
-    // Kiểm tra xem OTP có phải là chuỗi ký tự hợp lệ không
-    if (!otp || otp.length === 0 || otp.length !== 6) {
+    if (!otp || otp.length !== 6) {
       setError("Please enter a valid 6-digit OTP.");
       return;
     }
 
-    // Chuyển userSecret từ base32 sang buffer bằng base32.js
     const base32Decoder = new base32.Decoder();
-    const secretBuffer = base32Decoder.write(userSecret).finalize(); // Chuyển base32 thành buffer
+    const secretBuffer = base32Decoder.write(userSecret).finalize();
 
-    // Xác thực mã OTP bằng speakeasy
     const verified = speakeasy.totp.verify({
-      secret: secretBuffer, // Sử dụng buffer thay vì chuỗi base32
-      encoding: "buffer", // Sử dụng encoding là buffer
-      token: otp, // Mã OTP người dùng nhập vào
+      secret: secretBuffer,
+      encoding: "buffer",
+      token: otp,
+      window: 1, // nới một tí nếu cần
     });
 
     if (verified) {
-      alert("Login successful!");
-      // Tiến hành các bước sau khi đăng nhập thành công
+      // TODO: chuyển hướng dashboard, v.v.
+      router.push("/");
     } else {
       setError("Invalid OTP.");
     }
@@ -124,7 +158,7 @@ export default function SigninWithPassword() {
       {!isAuthenticated ? (
         <>
           <InputGroup
-            type="email"
+            type=""
             label="Email"
             className="mb-4 [&_input]:py-[15px]"
             placeholder="Enter your email"
@@ -153,10 +187,7 @@ export default function SigninWithPassword() {
               minimal
               radius="md"
               onChange={(e) =>
-                setData({
-                  ...data,
-                  remember: e.target.checked,
-                })
+                setData((prev) => ({ ...prev, remember: e.target.checked }))
               }
             />
 
@@ -168,10 +199,13 @@ export default function SigninWithPassword() {
             </Link>
           </div>
 
+          {error && <div className="mb-3 text-sm text-red-500">{error}</div>}
+
           <div className="mb-4.5">
             <button
               type="submit"
               className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary p-4 font-medium text-white transition hover:bg-opacity-90"
+              disabled={loading}
             >
               Sign In
               {loading && (
@@ -201,12 +235,13 @@ export default function SigninWithPassword() {
             value={otp}
           />
 
-          {error && <div style={{ color: "red" }}>{error}</div>}
+          {error && <div className="mb-3 text-sm text-red-500">{error}</div>}
 
           <div className="mb-4.5">
             <button
               type="submit"
               className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary p-4 font-medium text-white transition hover:bg-opacity-90"
+              disabled={loading}
             >
               Verify OTP
               {loading && (

@@ -490,3 +490,6 @@ div {
   background-color: rgb(18 32 49 / var(--tw-bg-opacity, 1));
   color: #e5e7eb;
 }
+.unit-modal {
+  width: 67% !important;
+}

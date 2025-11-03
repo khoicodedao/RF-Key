@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function SignIn() {
   return (
     <>
-      <Breadcrumb pageName="Sign In" />
+      {/* <Breadcrumb pageName="Sign In" /> */}
 
       <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card">
         <div className="flex flex-wrap items-center">

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { UnitFormDialog } from "./features/unit-form";
 import { fetchUnits, createUnit, updateUnit, deleteUnit } from "./features/api";
 import type { Unit } from "./features/types";
-
 // Ant Design
 import {
   Table,
@@ -84,8 +83,7 @@ export default function UnitsPage() {
 
   const load = React.useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetchUnits(token || "");
+      const res = await fetchUnits();
       setItems(res);
     } catch (err) {
       console.error("Lỗi tải dữ liệu đơn vị:", err);
@@ -247,7 +245,7 @@ export default function UnitsPage() {
   ];
 
   return (
-    <div className="grid gap-4">
+    <div className="page-units grid gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Units</h1>
         <Button
@@ -304,6 +302,7 @@ export default function UnitsPage() {
 
       {/* Modal xem chi tiết */}
       <Modal
+        className="unit-modal"
         open={viewOpen}
         onCancel={() => setViewOpen(false)}
         footer={null}
