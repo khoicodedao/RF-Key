@@ -19,6 +19,12 @@ export const NAV_DATA = [
       },
       {
         title: "Định danh",
+        url: "/ident",
+        icon: Icons.Alphabet,
+        items: [],
+      },
+      {
+        title: "Người dùng",
         url: "/users",
         icon: Icons.User,
         items: [],
