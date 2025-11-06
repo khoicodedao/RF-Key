@@ -269,12 +269,7 @@ export default function UnitsPage() {
           pagination={false}
           size="middle"
           expandable={{
-            defaultExpandedRowKeys: items
-              .filter(
-                (u) =>
-                  !u.parent_unit_code || u.parent_unit_code === u.unit_code, // root hoặc tự trỏ
-              )
-              .map((u) => u.unit_code),
+            defaultExpandedRowKeys: ["U3F7X9B2L1KD"], // ✅ expand đúng node này
           }}
           scroll={{ x: 980 }}
         />

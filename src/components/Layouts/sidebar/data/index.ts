@@ -18,7 +18,7 @@ export const NAV_DATA = [
         items: [],
       },
       {
-        title: "Người dùng",
+        title: "Định danh",
         url: "/users",
         icon: Icons.User,
         items: [],

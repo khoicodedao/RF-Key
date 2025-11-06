@@ -38,7 +38,6 @@ export function middleware(req: NextRequest) {
   const headerToken = authHeader.startsWith("Bearer ")
     ? authHeader.slice(7)
     : null;
-
   const hasToken = Boolean(cookieToken || headerToken);
 
   // Nếu là API request và không có token -> trả 401 JSON
