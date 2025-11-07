@@ -282,8 +282,8 @@ export default function IdentsPage() {
   ];
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="rounded-2xl border bg-white p-4 shadow-sm dark:bg-[#0b0b0b]">
+    <div className="page-ident container mx-auto p-4">
+      <div className="borderp-4 rounded-2xl shadow-sm">
         {/* Header + bộ lọc */}
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <h1 className="text-xl font-semibold">Định danh thiết bị</h1>

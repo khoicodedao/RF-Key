@@ -1,32 +1,65 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import axios from "axios";
 
-let users = [
-  {
-    username: "admin",
-    password: "12345678",
-    role: "admin",
-    unit_code: "U001",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    username: "staff1",
-    password: "12345678",
-    role: "editor",
-    unit_code: "U001",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+const BASE_URL = process.env.BASE_URL || "http://localhost:5000"; // fallback khi chưa set env
 
-export async function GET() {
-  return NextResponse.json({ items: users });
+/**
+ * Lấy Bearer token từ cookie (ưu tiên token -> auth)
+ */
+async function getBearerFromCookies(): Promise<string | null> {
+  const jar = await cookies();
+
+  // 1️⃣ cookie 'token'
+  const tk = jar.get("token")?.value;
+  if (tk) return `Bearer ${tk}`;
+
+  // 2️⃣ cookie 'auth' (JSON chứa token)
+  const rawAuth = jar.get("auth")?.value;
+  if (rawAuth) {
+    try {
+      const parsed = JSON.parse(rawAuth);
+      if (parsed?.token) return `Bearer ${parsed.token}`;
+    } catch {
+      // ignore parse error
+    }
+  }
+
+  return null;
 }
 
+/**
+ * POST /api/users/paginate
+ * Forward request từ Next đến backend /api/users/paginate
+ */
 export async function POST(req: Request) {
-  const body = await req.json();
-  body.created_at = new Date().toISOString();
-  body.updated_at = new Date().toISOString();
-  users.push(body);
-  return NextResponse.json({ ok: true, item: body });
+  try {
+    const body = await req.json();
+
+    // Kiểm tra header Authorization có sẵn chưa
+    const incomingAuth = req.headers.get("authorization");
+    const cookieBearer = await getBearerFromCookies();
+
+    const bearer =
+      (incomingAuth && incomingAuth.startsWith("Bearer ")
+        ? incomingAuth
+        : null) || cookieBearer;
+
+    // Forward sang backend
+    const resp = await axios.post(`${BASE_URL}/api/users/paginate`, body, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...(bearer ? { Authorization: bearer } : {}),
+      },
+      withCredentials: true,
+    });
+
+    return NextResponse.json(resp.data, { status: resp.status });
+  } catch (error: any) {
+    const status = error.response?.status || 500;
+    const err = error.response?.data || { message: error.message };
+    console.error("users/paginate forward error:", status, err);
+    return NextResponse.json({ ok: false, error: err }, { status });
+  }
 }

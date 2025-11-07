@@ -29,12 +29,12 @@ export const NAV_DATA = [
         icon: Icons.User,
         items: [],
       },
-      {
-        title: "Licenses",
-        url: "/licenses",
-        icon: Icons.Table,
-        items: [],
-      },
+      // {
+      //   title: "Licenses",
+      //   url: "/licenses",
+      //   icon: Icons.Table,
+      //   items: [],
+      // },
       // {
       //   title: "Forms",
       //   icon: Icons.Alphabet,
