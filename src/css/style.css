@@ -527,7 +527,13 @@ div {
 .dark .ant-input::placeholder {
   color: #9cabaf !important;
 }
+.dark .ant-input {
+  color: #9cabaf !important;
+}
 .dark .ant-select-selector {
   background-color: #122031 !important;
   color: #9cabaf !important;
+}
+.dark .ant-table-expanded-row-fixed {
+  background-color: #122031 !important;
 }
