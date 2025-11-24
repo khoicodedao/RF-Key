@@ -25,3 +25,21 @@ export async function fetchIdents(
   );
   return data;
 }
+
+// ---- Create idents (batch) ----
+export interface CreateIdentRequest {
+  unit_code: string;
+  quantity: number;
+  region?: number | string;
+}
+
+export async function createIdents(params: CreateIdentRequest): Promise<any> {
+  const { data } = await axios.post<any>("/api/ident/create", params, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+  });
+  return data;
+}

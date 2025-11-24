@@ -2,23 +2,21 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import axios from "axios";
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:5000"; // fallback
+const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
 async function getBearerFromCookies(): Promise<string | null> {
   const jar = await cookies();
 
-  // 1) cookie 'token'
   const tk = jar.get("token")?.value;
   if (tk) return `Bearer ${tk}`;
 
-  // 2) cookie 'auth' có thể chứa JSON {"token": "..."}
   const rawAuth = jar.get("auth")?.value;
   if (rawAuth) {
     try {
-      const parsed = JSON.parse(rawAuth); // nếu bạn encode, decodeURIComponent trước
+      const parsed = JSON.parse(rawAuth);
       if (parsed?.token) return `Bearer ${parsed.token}`;
     } catch {
-      // ignore
+      // ignore parse errors
     }
   }
   return null;
@@ -28,7 +26,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Nếu request gốc đã có Authorization thì dùng luôn; không thì lấy từ cookie
+    // preserve Authorization header if provided, otherwise use cookie
     const incomingAuth = req.headers.get("authorization");
     const cookieBearer = await getBearerFromCookies();
     const bearer =
@@ -36,7 +34,7 @@ export async function POST(req: Request) {
         ? incomingAuth
         : null) || cookieBearer;
 
-    const r = await axios.post(`${BASE_URL}/api/ident/paginate`, body, {
+    const r = await axios.post(`${BASE_URL}/api/ident/create`, body, {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -49,7 +47,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     const status = error.response?.status || 500;
     const err = error.response?.data || { message: error.message };
-    console.error("license/paginate forward error:", status, err);
+    console.error("ident/create forward error:", status, err);
     return NextResponse.json({ ok: false, error: err }, { status });
   }
 }

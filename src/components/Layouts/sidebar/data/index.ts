@@ -24,17 +24,18 @@ export const NAV_DATA = [
         items: [],
       },
       {
+        title: "Licenses",
+        url: "/licenses",
+        icon: Icons.Table,
+        items: [],
+      },
+      {
         title: "Người dùng",
         url: "/users",
         icon: Icons.User,
         items: [],
       },
-      // {
-      //   title: "Licenses",
-      //   url: "/licenses",
-      //   icon: Icons.Table,
-      //   items: [],
-      // },
+
       // {
       //   title: "Forms",
       //   icon: Icons.Alphabet,

@@ -1,20 +1,29 @@
-// features/licenses/api.ts
-import axios from "axios";
-import type { License } from "./types";
+// app/admin/license/features/api.ts
 
-export async function fetchLicenses(): Promise<License[]> {
-  const { data } = await axios.get("/api/licenses");
-  return data.items;
+import type { LicensePaginateResponse } from "./types";
+
+export interface FetchLicensesParams {
+  filter?: string;
+  page?: number;
+  limit?: number;
 }
-export async function createLicense(payload: License) {
-  const { data } = await axios.post("/api/licenses", payload);
-  return data;
-}
-export async function updateLicense(id: string, payload: Partial<License>) {
-  const { data } = await axios.patch(`/api/licenses/${id}`, payload);
-  return data;
-}
-export async function deleteLicense(id: string) {
-  const { data } = await axios.delete(`/api/licenses/${id}`);
-  return data;
+
+export async function fetchLicenses(
+  params: FetchLicensesParams,
+): Promise<LicensePaginateResponse> {
+  const res = await fetch("/api/licenses/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(params),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || "Không tải được danh sách license");
+  }
+
+  return res.json();
 }

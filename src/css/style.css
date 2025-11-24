@@ -537,3 +537,7 @@ div {
 .dark .ant-table-expanded-row-fixed {
   background-color: #122031 !important;
 }
+
+.page-license .ant-tree-list-holder {
+  background: white;
+}
