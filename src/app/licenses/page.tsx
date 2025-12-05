@@ -200,10 +200,12 @@ export default function LicensesPage() {
     setLoading(true);
     try {
       const filter = buildFilter() ?? "status like 'new'";
+      const computedOffset = (page - 1) * pageSize;
       const res: LicensePaginateResponse = await fetchLicenses({
         filter,
         page,
         limit: pageSize,
+        offset: computedOffset,
       });
       setData(res.items || []);
       setTotal(res.countTotal || 0);
@@ -231,6 +233,15 @@ export default function LicensesPage() {
 
   // ====== CỘT BẢNG ======
   const columns: ColumnsType<License> = [
+    {
+      title: "#",
+      key: "index",
+      width: 64,
+      render: (_: any, __: any, idx: number) => {
+        const computedOffset = (page - 1) * pageSize;
+        return computedOffset + idx + 1;
+      },
+    },
     {
       title: "License",
       dataIndex: "license",

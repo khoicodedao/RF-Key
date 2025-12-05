@@ -6,12 +6,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 // Schema validation (parse số cho level, trim chuỗi)
 const schema = z.object({
-  unit_code: z.string().trim().min(1, "Bắt buộc"),
+  unit_code: z.string().trim().optional().or(z.literal("")),
   unit_name: z.string().trim().min(1, "Bắt buộc"),
   parent_unit_code: z.string().trim().optional().or(z.literal("")),
   full_name: z.string().trim().optional().or(z.literal("")),
-  // @ts-ignore
-  region: z.enum(["bac", "trung", "nam"], { required_error: "Chọn vùng miền" }),
+  // Accept both string and numeric region values: 'bac'|'trung'|'nam' or 1|2|3
+  region: z.union([
+    z.enum(["bac", "trung", "nam"]),
+    z.number().int().min(1).max(3),
+  ]),
   level: z
     .preprocess(
       (v) =>
@@ -29,11 +32,13 @@ export function UnitFormDialog({
   onOpenChange,
   defaultValues,
   onSubmit,
+  parentLocked,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   defaultValues?: Partial<FormData>;
   onSubmit: (v: FormData) => Promise<void> | void;
+  parentLocked?: boolean;
 }) {
   const isEdit = !!defaultValues?.unit_code;
 
@@ -86,7 +91,6 @@ export function UnitFormDialog({
             ✕
           </button>
         </div>
-
         {/* Form */}
         <form
           className="mt-4 grid gap-3"
@@ -102,24 +106,25 @@ export function UnitFormDialog({
             onOpenChange(false);
           })}
         >
-          {/* unit_code */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Mã đơn vị
-            </label>
-            <input
-              {...register("unit_code")}
-              disabled={isEdit || isSubmitting}
-              className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none ring-0 transition focus:border-gray-400 focus:ring-2 focus:ring-[#5750F1]/30 dark:border-dark-3 dark:bg-gray-900 dark:text-gray-100"
-              placeholder="vd: U001"
-              autoFocus
-            />
-            {errors.unit_code && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                {errors.unit_code.message}
-              </p>
-            )}
-          </div>
+          {/* unit_code (only editable in edit mode) */}
+          {isEdit && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Mã đơn vị
+              </label>
+              <input
+                {...register("unit_code")}
+                disabled={isEdit || isSubmitting}
+                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none ring-0 transition focus:border-gray-400 focus:ring-2 focus:ring-[#5750F1]/30 dark:border-dark-3 dark:bg-gray-900 dark:text-gray-100"
+                placeholder="vd: U001"
+              />
+              {errors.unit_code && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.unit_code.message}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* unit_name */}
           <div>
@@ -131,6 +136,7 @@ export function UnitFormDialog({
               disabled={isSubmitting}
               className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none ring-0 transition focus:border-gray-400 focus:ring-2 focus:ring-[#5750F1]/30 dark:border-dark-3 dark:bg-gray-900 dark:text-gray-100"
               placeholder="vd: Phòng Kinh Doanh"
+              autoFocus={!isEdit}
             />
             {errors.unit_name && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -159,10 +165,18 @@ export function UnitFormDialog({
             </label>
             <input
               {...register("parent_unit_code")}
+              readOnly={Boolean(parentLocked)}
               disabled={isSubmitting}
               placeholder="(tuỳ chọn)"
-              className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none ring-0 transition focus:border-gray-400 focus:ring-2 focus:ring-[#5750F1]/30 dark:border-dark-3 dark:bg-gray-900 dark:text-gray-100"
+              className={`mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none ring-0 transition focus:border-gray-400 focus:ring-2 focus:ring-[#5750F1]/30 dark:border-dark-3 dark:bg-gray-900 dark:text-gray-100 ${
+                parentLocked ? "bg-gray-50 opacity-80 dark:bg-gray-800" : ""
+              }`}
             />
+            {parentLocked && (
+              <p className="mt-1 text-xs text-gray-500">
+                Mã đơn vị cha đã được tự động gán và không thể thay đổi.
+              </p>
+            )}
           </div>
 
           {/* region + level */}

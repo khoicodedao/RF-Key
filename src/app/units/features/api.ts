@@ -2,11 +2,25 @@
 import { api } from "@/app/utils/api";
 import type { Unit } from "./types";
 
-export async function fetchUnits(params?: Record<string, any>) {
+export type CreateUnitRequest = {
+  parent_unit_code?: string | null;
+  region: Unit["region"];
+  full_name?: string;
+  level?: number | null;
+  unit_name: string;
+};
+
+export type FetchUnitsParams = {
+  limit?: number;
+  offset?: number;
+  [k: string]: any;
+};
+
+export async function fetchUnits(params?: FetchUnitsParams) {
   const { data } = await api.post("/units", params ?? {});
   return data?.items ?? [];
 }
-export async function createUnit(payload: Unit) {
+export async function createUnit(payload: CreateUnitRequest) {
   const { data } = await api.post("/units/create", payload);
   return data;
 }

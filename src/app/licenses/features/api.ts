@@ -6,6 +6,7 @@ export interface FetchLicensesParams {
   filter?: string;
   page?: number;
   limit?: number;
+  offset?: number;
 }
 
 export async function fetchLicenses(

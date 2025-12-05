@@ -5,7 +5,7 @@
 # =======================================
 
 PROJECT_NAME="nextjs"
-SERVER_URL="http://10.32.116.233:3000"
+SERVER_URL="0.0.0.0:3000"
 
 echo "======================================="
 echo "▶️ Run Script for $PROJECT_NAME"

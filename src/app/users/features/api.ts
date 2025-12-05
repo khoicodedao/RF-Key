@@ -12,6 +12,7 @@ export interface UserPaginateRequest {
   limit?: number;
   q?: string;
   region?: number;
+  offset?: number;
 }
 
 /**

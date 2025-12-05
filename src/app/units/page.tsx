@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
 import { UnitFormDialog } from "./features/unit-form";
 import { fetchUnits, createUnit, updateUnit, deleteUnit } from "./features/api";
+import type { CreateUnitRequest } from "./features/api";
 import type { Unit } from "./features/types";
 // Ant Design
 import {
@@ -76,6 +77,9 @@ export default function UnitsPage() {
   const [items, setItems] = React.useState<Unit[]>([]);
   const [open, setOpen] = React.useState(false);
   const [editItem, setEditItem] = React.useState<Unit | null>(null);
+  const [createDefaultValues, setCreateDefaultValues] = React.useState<
+    Partial<Unit> | undefined
+  >(undefined);
 
   // View modal state
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -100,6 +104,12 @@ export default function UnitsPage() {
   );
 
   const columns: ColumnsType<UnitTreeNode> = [
+    {
+      title: "#",
+      key: "index",
+      width: 64,
+      render: (_: any, __: any, idx: number) => idx + 1,
+    },
     {
       title: "Đơn vị",
       dataIndex: "unit_name",
@@ -210,11 +220,39 @@ export default function UnitsPage() {
               icon={<EditOutlined />}
               className="cursor-pointer"
               onClick={() => {
+                setCreateDefaultValues(undefined);
                 setEditItem(u);
                 setOpen(true);
               }}
             >
               Sửa
+            </Tag>
+          </Tooltip>
+
+          {/* Thêm con */}
+          <Tooltip title="Thêm đơn vị con">
+            <Tag
+              color="green"
+              icon={<PlusOutlined />}
+              className="cursor-pointer"
+              onClick={() => {
+                setEditItem(null);
+                setCreateDefaultValues({
+                  parent_unit_code: u.unit_code,
+                  region:
+                    typeof u.region === "number"
+                      ? u.region === 1
+                        ? "bac"
+                        : u.region === 2
+                          ? "trung"
+                          : "nam"
+                      : (u.region as any),
+                  level: typeof u.level === "number" ? u.level + 1 : u.level,
+                });
+                setOpen(true);
+              }}
+            >
+              Thêm con
             </Tag>
           </Tooltip>
 
@@ -251,6 +289,7 @@ export default function UnitsPage() {
         <Button
           onClick={() => {
             setEditItem(null);
+            setCreateDefaultValues(undefined);
             setOpen(true);
           }}
           className="inline-flex items-center gap-2"
@@ -278,18 +317,37 @@ export default function UnitsPage() {
       {/* Form thêm/sửa */}
       <UnitFormDialog
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={(v) => {
+          setOpen(v);
+          if (!v) setCreateDefaultValues(undefined);
+        }}
         // @ts-ignore
-        defaultValues={editItem ?? undefined}
+        defaultValues={editItem ?? createDefaultValues ?? undefined}
+        parentLocked={Boolean(
+          !editItem && createDefaultValues?.parent_unit_code,
+        )}
         onSubmit={async (v) => {
           if (editItem) {
             // @ts-ignore
             await updateUnit(editItem.unit_code, v);
           } else {
-            await createUnit({
-              ...v,
-              created_at: dayjs().toISOString(),
-            } as Unit);
+            // Only send the minimal payload expected by the backend
+            const regionValue =
+              typeof v.region === "number"
+                ? v.region
+                : v.region === "bac"
+                  ? 1
+                  : v.region === "trung"
+                    ? 2
+                    : 3;
+            const payload: CreateUnitRequest = {
+              parent_unit_code: v.parent_unit_code ?? undefined,
+              region: regionValue,
+              full_name: v.full_name ?? undefined,
+              level: v.level ?? undefined,
+              unit_name: v.unit_name,
+            };
+            await createUnit(payload);
           }
           load();
         }}

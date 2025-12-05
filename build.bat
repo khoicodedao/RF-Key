@@ -1,9 +1,12 @@
 @echo off
 title Build & Control Next.js Docker
-setlocal
+setlocal ENABLEDELAYEDEXPANSION
 
-set "PROJECT_NAME=nextjs"
+REM ==== CONFIG ====
+set "PROJECT_NAME=nextjs"         REM Đặt tên service trong docker-compose (vd: app, web...)
 set "SERVER_URL=http://10.32.116.233:3000"
+set "NETWORK_NAME=appnet"         REM Network external trong docker-compose.yml
+REM =================
 
 echo ======================================
 echo Build and Deploy Script for %PROJECT_NAME%
@@ -24,16 +27,27 @@ if %opt%==4 goto logs
 if %opt%==5 goto nuke
 goto end
 
+:ensure_network
+echo [*] Kiem tra Docker network "%NETWORK_NAME%"...
+docker network inspect "%NETWORK_NAME%" >nul 2>&1
+if not %ERRORLEVEL%==0 (
+    echo [*] Khong tim thay network "%NETWORK_NAME%", dang tao moi...
+    docker network create "%NETWORK_NAME%"
+)
+goto :eof
+
 :build_nocache
-echo [*] Build no cache...
+echo [*] Build (no cache)...
 docker compose down
+call :ensure_network
 docker compose build --no-cache
 docker compose up -d
 goto done
 
 :build_cache
-echo [*] Build dung cache...
+echo [*] Build (dung cache)...
 docker compose down
+call :ensure_network
 docker compose build
 docker compose up -d
 goto done
@@ -49,7 +63,7 @@ docker compose logs -f %PROJECT_NAME%
 goto end
 
 :nuke
-echo [*] Xoa tat ca container, image, cache...
+echo [*] Xoa tat ca container, image, cache lien quan...
 docker compose down
 docker system prune -af --volumes
 goto done
@@ -58,6 +72,8 @@ goto done
 echo.
 echo [OK] Hoan tat!
 echo Mo trinh duyet: %SERVER_URL%
+
+REM Thu mo browser tren Windows
 start "" "%SERVER_URL%"
 
 :end

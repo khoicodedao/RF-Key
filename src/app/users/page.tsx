@@ -65,9 +65,11 @@ export default function UsersPage() {
   const load = React.useCallback(async () => {
     try {
       setLoading(true);
+      const computedOffset = (page - 1) * pageSize;
       const res: any = await fetchUsers({
         page,
         limit: pageSize,
+        offset: computedOffset,
         q,
         region,
       });
@@ -86,6 +88,15 @@ export default function UsersPage() {
   }, [load]);
 
   const columns: ColumnsType<AppUser> = [
+    {
+      title: "#",
+      key: "index",
+      width: 64,
+      render: (_: any, __: any, idx: number) => {
+        const computedOffset = (page - 1) * pageSize;
+        return computedOffset + idx + 1;
+      },
+    },
     {
       title: "Tên đăng nhập",
       dataIndex: "user_name",

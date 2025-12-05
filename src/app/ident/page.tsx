@@ -80,10 +80,12 @@ export default function IdentsPage() {
     setLoading(true);
     try {
       const filter = buildFilter() ?? "status like 'act'";
+      const computedOffset = (page - 1) * pageSize;
       const res: IdentPaginateResponse = await fetchIdents({
         filter,
         page,
         limit: pageSize,
+        offset: computedOffset,
       });
       setData(res.items || []);
       setTotal(res.countTotal || 0);
@@ -111,6 +113,15 @@ export default function IdentsPage() {
 
   // ====== CỘT BẢNG (tối ưu hiển thị, chống tràn) ======
   const columns: ColumnsType<Ident> = [
+    {
+      title: "#",
+      key: "index",
+      width: 64,
+      render: (_: any, __: any, idx: number) => {
+        const computedOffset = (page - 1) * pageSize;
+        return computedOffset + idx + 1;
+      },
+    },
     {
       title: "Thiết bị",
       dataIndex: "device_name",

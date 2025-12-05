@@ -538,6 +538,10 @@ div {
   background-color: #122031 !important;
 }
 
-.page-license .ant-tree-list-holder {
+/* .page-license .ant-tree-list-holder {
   background: white;
+} */
+
+.page-ident .ant-table-container {
+  padding: 30px !important;
 }
