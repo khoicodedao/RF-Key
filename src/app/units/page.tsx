@@ -364,46 +364,96 @@ export default function UnitsPage() {
         width={720}
       >
         {viewItem && (
-          <Descriptions
-            column={{ xs: 1, sm: 1, md: 2 }}
-            bordered
+          <Table
             size="small"
-            labelStyle={{ width: 160 }}
-          >
-            <Descriptions.Item label="Mã đơn vị">
-              {viewItem.unit_code}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tên đơn vị">
-              {viewItem.unit_name}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tên đầy đủ">
-              {viewItem.full_name || "-"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Miền">
-              {regionLabel(viewItem.region)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Level">
-              {viewItem.level}
-            </Descriptions.Item>
-            <Descriptions.Item label="Đơn vị cha">
-              {viewItem.parent_unit_code || "-"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Domains (log)">
-              {(viewItem.domains_log || []).join(", ") || "0"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Domains (update)">
-              {(viewItem.domains_update || []).join(", ") || "0"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Domains (control)">
-              {(viewItem.domains_control || []).join(", ") || "0"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tạo lúc">
-              {dayjs(viewItem.created_at).format("YYYY-MM-DD HH:mm")}
-            </Descriptions.Item>
-            <Descriptions.Item label="Cập nhật lúc">
-              {dayjs(viewItem.updated_at).format("YYYY-MM-DD HH:mm")}
-            </Descriptions.Item>
-          </Descriptions>
+            bordered
+            pagination={false}
+            rowKey="key"
+            columns={[
+              {
+                title: "Trường",
+                dataIndex: "label",
+                key: "label",
+                width: 200,
+              },
+              {
+                title: "Giá trị",
+                dataIndex: "value",
+                key: "value",
+              },
+            ]}
+            dataSource={[
+              {
+                key: "unit_code",
+                label: "Mã đơn vị",
+                value: viewItem.unit_code || "-",
+              },
+              {
+                key: "unit_name",
+                label: "Tên đơn vị",
+                value: viewItem.unit_name || "-",
+              },
+              {
+                key: "full_name",
+                label: "Tên đầy đủ",
+                value: viewItem.full_name || "-",
+              },
+              {
+                key: "region",
+                label: "Miền",
+                value: regionLabel(viewItem.region),
+              },
+              {
+                key: "level",
+                label: "Level",
+                value: viewItem.level ?? "-",
+              },
+              {
+                key: "parent_unit_code",
+                label: "Đơn vị cha",
+                value: viewItem.parent_unit_code || "-",
+              },
+              {
+                key: "domains_log",
+                label: "Domains (log)",
+                value:
+                  Array.isArray(viewItem.domains_log) &&
+                  viewItem.domains_log.length > 0
+                    ? viewItem.domains_log.join(", ")
+                    : "0",
+              },
+              {
+                key: "domains_update",
+                label: "Domains (update)",
+                value:
+                  Array.isArray(viewItem.domains_update) &&
+                  viewItem.domains_update.length > 0
+                    ? viewItem.domains_update.join(", ")
+                    : "0",
+              },
+              {
+                key: "domains_control",
+                label: "Domains (control)",
+                value:
+                  Array.isArray(viewItem.domains_control) &&
+                  viewItem.domains_control.length > 0
+                    ? viewItem.domains_control.join(", ")
+                    : "0",
+              },
+              {
+                key: "created_at",
+                label: "Tạo lúc",
+                value: dayjs(viewItem.created_at).format("YYYY-MM-DD HH:mm"),
+              },
+              {
+                key: "updated_at",
+                label: "Cập nhật lúc",
+                value: dayjs(viewItem.updated_at).format("YYYY-MM-DD HH:mm"),
+              },
+            ]}
+            // Nếu muốn zebra row:
+            // rowClassName={(_, index) => (index % 2 === 0 ? "bg-gray-50" : "")}
+          />
         )}
       </Modal>
     </div>

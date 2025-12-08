@@ -52,9 +52,9 @@ export default function SignIn() {
                 fields below
               </p>
 
-              <div className="mt-31">
+              <div>
                 <Image
-                  src={"/images/grids/grid-02.svg"}
+                  src={"/images/logo.webp"}
                   alt="Logo"
                   width={405}
                   height={325}

@@ -585,144 +585,188 @@ export default function LicensesPage() {
         }}
       >
         {viewItem && (
-          <Descriptions
-            column={{ xs: 1, md: 2 }}
-            bordered
+          <Table
             size="small"
-            labelStyle={{ width: 200 }}
-            contentStyle={{
-              wordBreak: "break-word",
-              whiteSpace: "normal",
-            }}
-          >
-            <Descriptions.Item label="ID">{viewItem.id}</Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
-              {statusTag(viewItem.status)}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="License" span={2}>
-              {viewItem.license ? (
-                <Paragraph
-                  className="!mb-0"
-                  copyable={{
-                    text: viewItem.license,
-                    tooltips: ["Copy", "Đã copy"],
-                  }}
-                  ellipsis={{ rows: 1, tooltip: viewItem.license }}
-                >
-                  {viewItem.license}
-                </Paragraph>
-              ) : (
-                "-"
-              )}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Đơn vị">
-              {viewItem.unit_code || "-"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Unit alias">
-              {viewItem.unit || "-"}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Thiết bị">
-              {viewItem.device_name || "-"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Người quản lý">
-              {viewItem.manager_name || "-"}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="IP">
-              {viewItem.ip || "-"}
-            </Descriptions.Item>
-            <Descriptions.Item label="MAC">
-              {viewItem.mac || "-"}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Actived at">
-              {fmt(viewItem.actived_at)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Reactived at">
-              {fmt(viewItem.reactived_at)}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Tạo lúc">
-              {fmt(viewItem.created_at)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Cập nhật lúc">
-              {fmt(viewItem.updated_at)}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Token Info" span={2}>
-              {viewItem.token_info ? (
-                <Paragraph
-                  className="!mb-0"
-                  style={{ wordBreak: "break-word" }}
-                  ellipsis={{ rows: 3, expandable: true, symbol: "Xem thêm" }}
-                  copyable={{
-                    text: viewItem.token_info,
-                    tooltips: ["Copy", "Đã copy"],
-                  }}
-                >
-                  {viewItem.token_info}
-                </Paragraph>
-              ) : (
-                "-"
-              )}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Token Domain" span={2}>
-              {viewItem.token_domain ? (
-                <Paragraph
-                  className="!mb-0"
-                  style={{ wordBreak: "break-word" }}
-                  ellipsis={{ rows: 3, expandable: true, symbol: "Xem thêm" }}
-                  copyable={{
-                    text: viewItem.token_domain,
-                    tooltips: ["Copy", "Đã copy"],
-                  }}
-                >
-                  {viewItem.token_domain}
-                </Paragraph>
-              ) : (
-                "-"
-              )}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Region">
-              {viewItem.region ?? "-"}
-            </Descriptions.Item>
-            <Descriptions.Item label="UID">
-              {viewItem.uid ? (
-                <Paragraph
-                  className="!mb-0"
-                  copyable={{
-                    text: viewItem.uid,
-                    tooltips: ["Copy", "Đã copy"],
-                  }}
-                  ellipsis={{ rows: 1, tooltip: viewItem.uid }}
-                >
-                  {viewItem.uid}
-                </Paragraph>
-              ) : (
-                "-"
-              )}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="isSend">
-              {String(viewItem.isSend ?? 0)}
-            </Descriptions.Item>
-            <Descriptions.Item label="sent_at">
-              {fmt(viewItem.sent_at)}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="resent_at" span={2}>
-              {fmt(viewItem.resent_at)}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="reissue_count" span={2}>
-              {viewItem.reissue_count ?? 0}
-            </Descriptions.Item>
-          </Descriptions>
+            bordered
+            pagination={false}
+            rowKey="key"
+            columns={[
+              {
+                title: "Trường",
+                dataIndex: "label",
+                key: "label",
+                width: 220,
+              },
+              {
+                title: "Giá trị",
+                dataIndex: "value",
+                key: "value",
+              },
+            ]}
+            dataSource={[
+              {
+                key: "id",
+                label: "ID",
+                value: viewItem.id || "-",
+              },
+              {
+                key: "status",
+                label: "Trạng thái",
+                value: statusTag(viewItem.status),
+              },
+              {
+                key: "license",
+                label: "License",
+                value: viewItem.license ? (
+                  <Paragraph
+                    className="!mb-0"
+                    copyable={{
+                      text: viewItem.license,
+                      tooltips: ["Copy", "Đã copy"],
+                    }}
+                    ellipsis={{ rows: 1, tooltip: viewItem.license }}
+                  >
+                    {viewItem.license}
+                  </Paragraph>
+                ) : (
+                  "-"
+                ),
+              },
+              {
+                key: "unit_code",
+                label: "Đơn vị",
+                value: viewItem.unit_code || "-",
+              },
+              {
+                key: "unit",
+                label: "Unit alias",
+                value: viewItem.unit || "-",
+              },
+              {
+                key: "device_name",
+                label: "Thiết bị",
+                value: viewItem.device_name || "-",
+              },
+              {
+                key: "manager_name",
+                label: "Người quản lý",
+                value: viewItem.manager_name || "-",
+              },
+              {
+                key: "ip",
+                label: "IP",
+                value: viewItem.ip || "-",
+              },
+              {
+                key: "mac",
+                label: "MAC",
+                value: viewItem.mac || "-",
+              },
+              {
+                key: "actived_at",
+                label: "Actived at",
+                value: fmt(viewItem.actived_at),
+              },
+              {
+                key: "reactived_at",
+                label: "Reactived at",
+                value: fmt(viewItem.reactived_at),
+              },
+              {
+                key: "created_at",
+                label: "Tạo lúc",
+                value: fmt(viewItem.created_at),
+              },
+              {
+                key: "updated_at",
+                label: "Cập nhật lúc",
+                value: fmt(viewItem.updated_at),
+              },
+              {
+                key: "token_info",
+                label: "Token Info",
+                value: viewItem.token_info ? (
+                  <Paragraph
+                    className="!mb-0"
+                    style={{ wordBreak: "break-word" }}
+                    ellipsis={{ rows: 3, expandable: true, symbol: "Xem thêm" }}
+                    copyable={{
+                      text: viewItem.token_info,
+                      tooltips: ["Copy", "Đã copy"],
+                    }}
+                  >
+                    {viewItem.token_info}
+                  </Paragraph>
+                ) : (
+                  "-"
+                ),
+              },
+              {
+                key: "token_domain",
+                label: "Token Domain",
+                value: viewItem.token_domain ? (
+                  <Paragraph
+                    className="!mb-0"
+                    style={{ wordBreak: "break-word" }}
+                    ellipsis={{ rows: 3, expandable: true, symbol: "Xem thêm" }}
+                    copyable={{
+                      text: viewItem.token_domain,
+                      tooltips: ["Copy", "Đã copy"],
+                    }}
+                  >
+                    {viewItem.token_domain}
+                  </Paragraph>
+                ) : (
+                  "-"
+                ),
+              },
+              {
+                key: "region",
+                label: "Region",
+                value: viewItem.region ?? "-",
+              },
+              {
+                key: "uid",
+                label: "UID",
+                value: viewItem.uid ? (
+                  <Paragraph
+                    className="!mb-0"
+                    copyable={{
+                      text: viewItem.uid,
+                      tooltips: ["Copy", "Đã copy"],
+                    }}
+                    ellipsis={{ rows: 1, tooltip: viewItem.uid }}
+                  >
+                    {viewItem.uid}
+                  </Paragraph>
+                ) : (
+                  "-"
+                ),
+              },
+              {
+                key: "isSend",
+                label: "isSend",
+                value: String(viewItem.isSend ?? 0),
+              },
+              {
+                key: "sent_at",
+                label: "sent_at",
+                value: fmt(viewItem.sent_at),
+              },
+              {
+                key: "resent_at",
+                label: "resent_at",
+                value: fmt(viewItem.resent_at),
+              },
+              {
+                key: "reissue_count",
+                label: "reissue_count",
+                value: viewItem.reissue_count ?? 0,
+              },
+            ]}
+            // Nếu muốn zebra row:
+            // rowClassName={(_, index) => (index % 2 === 0 ? "bg-gray-50" : "")}
+          />
         )}
       </Modal>
     </div>

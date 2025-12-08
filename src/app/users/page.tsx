@@ -305,44 +305,69 @@ export default function UsersPage() {
         onCancel={() => setViewOpen(false)}
         footer={null}
         title={
-          // @ts-ignore
           viewItem ? `Chi tiết: ${viewItem.user_name}` : "Chi tiết người dùng"
         }
         centered
         width={720}
       >
         {viewItem && (
-          <Descriptions
-            column={{ xs: 1, md: 2 }}
-            bordered
+          <Table
             size="small"
-            labelStyle={{ width: 180 }}
-          >
-            <Descriptions.Item label="Tên đăng nhập">
-              {/* @ts-ignore */}
-              {viewItem.user_name}
-            </Descriptions.Item>
-            <Descriptions.Item label="Vai trò">
-              {statusTag(viewItem.role)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Miền">
-              {/* @ts-ignore */}
-              {regionLabel(viewItem.region)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Đơn vị">
-              {Array.isArray(viewItem.unit_code)
-                ? viewItem.unit_code
-                    .map((v) => v.replace(/[\[\]"'`]/g, "").trim())
-                    .join(", ")
-                : "-"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tạo lúc">
-              {fmt(viewItem.created_at)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Cập nhật lúc">
-              {fmt(viewItem.updated_at)}
-            </Descriptions.Item>
-          </Descriptions>
+            bordered
+            pagination={false}
+            rowKey="key"
+            columns={[
+              {
+                title: "Trường",
+                dataIndex: "label",
+                key: "label",
+                width: 200,
+              },
+              {
+                title: "Giá trị",
+                dataIndex: "value",
+                key: "value",
+              },
+            ]}
+            dataSource={[
+              {
+                key: "username",
+                label: "Tên đăng nhập",
+                value: viewItem.user_name || "-",
+              },
+              {
+                key: "role",
+                label: "Vai trò",
+                value: statusTag(viewItem.role),
+              },
+              {
+                key: "region",
+                label: "Miền",
+                value: regionLabel(viewItem.region),
+              },
+              {
+                key: "unit_code",
+                label: "Đơn vị",
+                value:
+                  Array.isArray(viewItem.unit_code) &&
+                  viewItem.unit_code.length > 0
+                    ? viewItem.unit_code
+                        .map((v) => v.replace(/[\[\]"'`]/g, "").trim())
+                        .join(", ")
+                    : "-",
+              },
+              {
+                key: "created_at",
+                label: "Tạo lúc",
+                value: fmt(viewItem.created_at),
+              },
+              {
+                key: "updated_at",
+                label: "Cập nhật lúc",
+                value: fmt(viewItem.updated_at),
+              },
+            ]}
+          />
         )}
       </Modal>
     </div>

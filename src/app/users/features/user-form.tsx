@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 const schema = z.object({
   username: z.string().min(1, "Bắt buộc"),
   password: z.string().min(8, "Tối thiểu 8 ký tự").optional(),
-  role: z.enum(["admin", "editor", "viewer"]),
+  role: z.enum(["admin", "user", "superadmin"]),
   unit_code: z.string().min(1, "Bắt buộc"),
 });
 type FormData = z.infer<typeof schema>;

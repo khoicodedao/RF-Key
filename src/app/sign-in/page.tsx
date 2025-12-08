@@ -54,7 +54,7 @@ export default function SignIn() {
 
               <div className="mt-31">
                 <Image
-                  src={"/images/grids/grid-02.svg"}
+                  src={"/images/logo.webp"}
                   alt="Logo"
                   width={405}
                   height={325}
