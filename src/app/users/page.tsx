@@ -27,6 +27,7 @@ import {
 import { UserFormDialog } from "./features/user-form";
 import { fetchUsers, createUser, updateUser, deleteUser } from "./features/api";
 import type { AppUser } from "./features/types";
+import { QRCode } from "antd";
 
 const fmt = (v?: string | null) =>
   v ? dayjs(v).format("YYYY-MM-DD HH:mm") : "-";
@@ -74,6 +75,7 @@ export default function UsersPage() {
         region,
       });
       setData(res.items ?? []);
+      console.log("Fetched users:", res);
       setTotal(res.countTotal ?? res.items?.length ?? 0);
     } catch (e: any) {
       console.error(e);
@@ -142,6 +144,13 @@ export default function UsersPage() {
         </div>
       ),
     },
+    {
+      title: "OTP Required",
+      key: "otp_enabled",
+      dataIndex: "otp_enabled",
+      width: 210,
+    },
+
     {
       title: "Thao tác",
       key: "actions",
@@ -365,6 +374,39 @@ export default function UsersPage() {
                 key: "updated_at",
                 label: "Cập nhật lúc",
                 value: fmt(viewItem.updated_at),
+              },
+              {
+                key: "otp_enabled",
+                label: "OTP Enabled",
+                value: viewItem.otp_enabled ? (
+                  <Tag color="green">Enabled</Tag>
+                ) : (
+                  <Tag color="red">Disabled</Tag>
+                ),
+              },
+              {
+                key: "otpauthUrl",
+                label: "OTP QR / otpauthUrl",
+                value: viewItem.otpauthUrl ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 16,
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                    }}
+                  >
+                    {/* QR Code từ otpauth URL */}
+                    <QRCode value={viewItem.otpauthUrl} size={140} />
+
+                    {/* Text có thể copy */}
+                    <span style={{ maxWidth: 360, wordBreak: "break-all" }}>
+                      {viewItem.otpauthUrl}
+                    </span>
+                  </div>
+                ) : (
+                  "-"
+                ),
               },
             ]}
           />

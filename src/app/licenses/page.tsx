@@ -23,7 +23,7 @@ import type { ColumnsType } from "antd/es/table";
 import type { DataNode } from "antd/es/tree";
 import { EyeOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import { Button } from "@/components/ui/button";
-
+import levelColor from "./features/level-color";
 import { fetchLicenses } from "./features/api";
 import { fetchUnits } from "../units/features/api";
 import { createIdents } from "../ident/features/api";
@@ -54,6 +54,7 @@ interface UnitTreeNode extends DataNode {
   unit: Unit;
 }
 
+// ====== BUILD TREE DATA TỪ DANH SÁCH UNIT ======
 function buildUnitTree(units: Unit[]): {
   treeData: UnitTreeNode[];
   unitMap: Map<string, Unit>;
@@ -70,13 +71,38 @@ function buildUnitTree(units: Unit[]): {
     nodeMap.set(u.unit_code, {
       key: u.unit_code,
       title: (
-        <span>
-          {u.unit_name}
-          {/*  */}
-          {/* <Text type="secondary" style={{ marginLeft: 4, fontSize: 12 }}>
-            ({u.level})
-          </Text> */}
-        </span>
+        <div className="flex flex-col gap-[2px]">
+          {/* Dòng 1: tên đơn vị + level */}
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] font-medium text-gray-800">
+              {u.unit_name}
+            </span>
+            {u.level &&
+              (() => {
+                const c = levelColor(u.level);
+                return (
+                  <span
+                    className={`rounded-full border px-2 py-[1px] text-[11px] font-semibold ${c.bg} ${c.text} ${c.border} `}
+                  >
+                    Level {u.level}
+                  </span>
+                );
+              })()}
+          </div>
+
+          {/* Dòng 2: mã + vùng */}
+          <div className="text-[11px] text-gray-500">
+            <span className="font-mono">{u.unit_code}</span>
+            {u.region != null && (
+              <span className="ml-1">• Vùng {u.region}</span>
+            )}
+          </div>
+
+          {/* Dòng 3: tên đầy đủ (nếu có) */}
+          {u.full_name && (
+            <div className="text-[11px] text-gray-400">{u.full_name}</div>
+          )}
+        </div>
       ),
       unit: u,
       children: [],
@@ -88,9 +114,6 @@ function buildUnitTree(units: Unit[]): {
   units.forEach((u) => {
     const node = nodeMap.get(u.unit_code)!;
 
-    // root nếu:
-    // - parent_unit_code không tồn tại trong map
-    // - hoặc parent_unit_code === unit_code (trường hợp self-root như U3F7X9B2L1KD)
     if (
       !u.parent_unit_code ||
       u.parent_unit_code === u.unit_code ||
@@ -401,9 +424,12 @@ export default function LicensesPage() {
                 </div>
               ) : (
                 <Tree
+                  className="unit-tree"
                   treeData={unitTree}
                   defaultExpandAll
                   height={500}
+                  blockNode
+                  showLine={{ showLeafIcon: false }}
                   onSelect={(keys, info) => {
                     const key = (keys[0] as string) || undefined;
                     setSelectedUnitCode(key);

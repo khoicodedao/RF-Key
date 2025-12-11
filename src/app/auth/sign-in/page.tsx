@@ -47,11 +47,6 @@ export default function SignIn() {
                 Welcome Back!
               </h1>
 
-              <p className="w-full max-w-[375px] font-medium text-dark-4 dark:text-dark-6">
-                Please sign in to your account by completing the necessary
-                fields below
-              </p>
-
               <div>
                 <Image
                   src={"/images/logo.webp"}

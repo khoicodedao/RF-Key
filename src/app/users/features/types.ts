@@ -6,4 +6,6 @@ export type AppUser = {
   unit_code: string;
   created_at?: string;
   updated_at?: string;
+  otp_enabled: boolean;
+  otpauthUrl: string | null;
 };

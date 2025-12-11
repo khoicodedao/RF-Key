@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import InputGroup from "../FormElements/InputGroup";
 import { Checkbox } from "../FormElements/checkbox";
 import { useRouter } from "next/navigation";
+import { fa } from "zod/locales";
 
 type LoginApiResponse = {
   code: number;
