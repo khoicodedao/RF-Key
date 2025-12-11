@@ -17,14 +17,18 @@ export async function POST(req: Request) {
 
     const res = NextResponse.json(data, { status: backend.status });
 
-    // 🔐 Set cookie để middleware đọc được
     if (token) {
+      // ❗ Chỉ bật secure khi chắc chắn chạy HTTPS
+      const cookieSecure =
+        process.env.NODE_ENV === "production" &&
+        process.env.NEXT_PUBLIC_APP_URL?.startsWith("https");
+
       res.cookies.set("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: cookieSecure, // 👈 dùng biến này
         sameSite: "lax",
         path: "/",
-        maxAge: 60 * 60 * 24 * 7, // 7 ngày
+        maxAge: 60 * 60 * 24 * 7,
       });
     }
 
