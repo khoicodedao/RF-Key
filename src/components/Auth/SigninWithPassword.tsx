@@ -53,6 +53,7 @@ export default function SigninWithPassword() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          credentials: "include",
           user_name: data.email,
           password: data.password,
           otp: data.otp,

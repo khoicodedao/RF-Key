@@ -488,7 +488,7 @@ div {
 }
 .dark .ant-table-content {
   background-color: rgb(18 32 49 / var(--tw-bg-opacity, 1)) !important;
-  color: #e5e7eb;
+  color: #e5e7eb !important;
 }
 .unit-modal {
   width: 67% !important;
@@ -544,4 +544,27 @@ div {
 
 .page-ident .ant-table-container {
   padding: 30px !important;
+}
+
+.dark .page-license .ant-table-cell {
+  background-color: #122031 !important;
+}
+
+.dark .page-license .ant-typography {
+  color: #9cabaf !important;
+}
+
+.dark [role="treeitem"],
+.dark .ant-tree .ant-tree-treenode:before {
+  background: #122031 !important;
+}
+
+.dark .ant-tree-switcher svg {
+  color: white !important;
+}
+.dark .ant-tree-node-content-wrapper {
+  border: 1px solid #1f2a37 !important  ;
+}
+.dark .ant-tree-node-selected {
+  background-color: #e6f4ff30 !important;
 }

@@ -26,7 +26,7 @@ export function UserFormDialog({
   const isEdit = !!defaultValues?.username;
   const { register, handleSubmit, formState } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { role: "viewer", ...defaultValues },
+    defaultValues: { ...defaultValues },
   });
   const { errors } = formState;
 

@@ -296,6 +296,7 @@ export default function UsersPage() {
       <UserFormDialog
         open={open}
         onOpenChange={setOpen}
+        // @ts-ignore
         defaultValues={editItem ?? undefined}
         onSubmit={async (v) => {
           if (editItem) {

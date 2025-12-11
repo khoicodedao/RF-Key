@@ -74,7 +74,7 @@ function buildUnitTree(units: Unit[]): {
         <div className="flex flex-col gap-[2px]">
           {/* Dòng 1: tên đơn vị + level */}
           <div className="flex items-center gap-2">
-            <span className="text-[13px] font-medium text-gray-800">
+            <span className="text-[13px] font-medium text-gray-800 dark:text-gray-200">
               {u.unit_name}
             </span>
             {u.level &&
@@ -389,7 +389,7 @@ export default function LicensesPage() {
       <div className="flex flex-col gap-4 md:flex-row">
         {/* ====== CÂY ĐƠN VỊ ====== */}
         <div className="w-full md:w-[30%]">
-          <div className="h-full rounded-2xl border bg-white p-4 shadow-sm">
+          <div className="h-full rounded-2xl border bg-white p-4 shadow-sm dark:bg-[#0b1e2d]">
             <div className="mb-2 flex items-center justify-between gap-2">
               <h2 className="m-0 text-base font-semibold">Cây đơn vị</h2>
               <div className="flex items-center gap-2">
@@ -417,7 +417,7 @@ export default function LicensesPage() {
                 {selectedUnitName}
               </Text>
             )}
-            <div className="mt-2 max-h-[70vh] overflow-auto">
+            <div className="mt-2">
               {unitLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Spin />
@@ -427,7 +427,7 @@ export default function LicensesPage() {
                   className="unit-tree"
                   treeData={unitTree}
                   defaultExpandAll
-                  height={500}
+                  // height={500}
                   blockNode
                   showLine={{ showLeafIcon: false }}
                   onSelect={(keys, info) => {
