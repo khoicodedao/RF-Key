@@ -8,12 +8,30 @@ services:
       args:
         ENV_FILE: .env
     container_name: nextjs
+    # Port này có thể giữ lại để debug, nếu không cần thì bỏ đi cũng được
     ports:
       - "3000:3000"
     env_file:
       - .env
     environment:
       - NODE_ENV=production
+    restart: always
+    networks:
+      - appnet
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    depends_on:
+      - nextjs
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # mount file cấu hình nginx chính
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # mount thư mục chứa cert
+      - ./nginx/certs:/etc/nginx/certs:ro
     restart: always
     networks:
       - appnet
