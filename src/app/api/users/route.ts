@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import axios from "axios";
+import { getHttpsAgentIfPresent } from "../backend-agent";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:5000"; // fallback khi chưa set env
 
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
         : null) || cookieBearer;
 
     // Forward sang backend
+    const httpsAgent = getHttpsAgentIfPresent();
     const resp = await axios.post(`${BASE_URL}/api/users/paginate`, body, {
       headers: {
         "Content-Type": "application/json",
@@ -53,6 +55,7 @@ export async function POST(req: Request) {
         ...(bearer ? { Authorization: bearer } : {}),
       },
       withCredentials: true,
+      httpsAgent,
     });
 
     return NextResponse.json(resp.data, { status: resp.status });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import axios from "axios";
+import { getHttpsAgentIfPresent } from "../../backend-agent";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
         ? incomingAuth
         : null) || cookieBearer;
 
+    const httpsAgent = getHttpsAgentIfPresent();
     const r = await axios.post(`${BASE_URL}/api/units/add`, body, {
       headers: {
         "Content-Type": "application/json",
@@ -41,6 +43,7 @@ export async function POST(req: Request) {
         ...(bearer ? { Authorization: bearer } : {}),
       },
       withCredentials: true,
+      httpsAgent,
     });
 
     return NextResponse.json(r.data, { status: r.status });

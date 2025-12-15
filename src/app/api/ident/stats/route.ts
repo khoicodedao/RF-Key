@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import axios from "axios";
+import { getHttpsAgentIfPresent } from "../../backend-agent";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
@@ -58,6 +59,7 @@ export async function GET(req: Request) {
 
     // request many items - tune limit as needed
     const limit = 10000;
+    const httpsAgent = getHttpsAgentIfPresent();
     const r = await axios.post(
       `${BASE_URL}/api/ident/paginate`,
       { filter: "", page: 1, limit },
@@ -68,6 +70,7 @@ export async function GET(req: Request) {
           ...(bearer ? { Authorization: bearer } : {}),
         },
         withCredentials: true,
+        httpsAgent,
       },
     );
 

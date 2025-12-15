@@ -1,6 +1,7 @@
 // app/api/login/route.ts
 import { NextResponse } from "next/server";
 import axios from "axios";
+import { getHttpsAgentIfPresent } from "../backend-agent";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
@@ -8,8 +9,10 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
+    const httpsAgent = getHttpsAgentIfPresent();
     const backend = await axios.post(`${BASE_URL}/api/auth/login`, body, {
       headers: { "Content-Type": "application/json" },
+      httpsAgent,
     });
 
     const data = backend.data; // { code, message, data: [{ token, ... }] }
