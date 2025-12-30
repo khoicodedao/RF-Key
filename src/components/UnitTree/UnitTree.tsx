@@ -37,6 +37,26 @@ function cn(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
 }
 
+/** ===== Helper: highlight text ===== */
+function highlightText(text: string, query: string) {
+  if (!query.trim()) return text;
+
+  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-yellow-200 dark:bg-yellow-600 px-0.5 rounded">
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 /** ===== Helper: build tree từ mảng phẳng ===== */
 function buildTree(
   flat: Unit[],
@@ -57,10 +77,10 @@ function buildTree(
   const sortFn =
     sortBy === "unit_name"
       ? (a: UnitNode, b: UnitNode) =>
-          a.unit_name.localeCompare(b.unit_name, "vi")
+        a.unit_name.localeCompare(b.unit_name, "vi")
       : sortBy === "unit_code"
         ? (a: UnitNode, b: UnitNode) =>
-            a.unit_code.localeCompare(b.unit_code, "vi")
+          a.unit_code.localeCompare(b.unit_code, "vi")
         : sortBy === "level"
           ? (a: UnitNode, b: UnitNode) => a.level - b.level
           : null;
@@ -85,6 +105,7 @@ function TreeItem({
   onToggle,
   collapsible,
   selectedUnitCode,
+  searchQuery,
 }: {
   node: UnitNode;
   depth: number;
@@ -94,6 +115,7 @@ function TreeItem({
   onToggle?: (u: Unit, isOpen: boolean) => void;
   collapsible: boolean;
   selectedUnitCode?: string;
+  searchQuery?: string;
 }) {
   const hasChildren = !!node.children?.length;
   const isOpen = openState[node.unit_code] ?? true;
@@ -149,8 +171,10 @@ function TreeItem({
             onSelect?.(node);
           }}
         >
-          {node.unit_name}{" "}
-          <span className="opacity-60">({node.unit_code})</span>
+          {highlightText(node.unit_name, searchQuery || "")}{" "}
+          <span className="opacity-60">
+            ({highlightText(node.unit_code, searchQuery || "")})
+          </span>
         </button>
       </div>
 
@@ -167,6 +191,7 @@ function TreeItem({
               onToggle={onToggle}
               collapsible={collapsible}
               selectedUnitCode={selectedUnitCode}
+              searchQuery={searchQuery}
             />
           ))}
         </div>
@@ -234,16 +259,29 @@ export function UnitTree({
       query.trim().length === 0
         ? list
         : list.filter((u) => {
-            const q = query.toLowerCase();
-            return (
-              u.unit_name.toLowerCase().includes(q) ||
-              u.full_name.toLowerCase().includes(q) ||
-              u.unit_code.toLowerCase().includes(q)
-            );
-          });
+          const q = query.toLowerCase();
+          return (
+            u.unit_name.toLowerCase().includes(q) ||
+            u.full_name.toLowerCase().includes(q) ||
+            u.unit_code.toLowerCase().includes(q)
+          );
+        });
 
     return buildTree(filtered, sortBy);
   }, [units, query, sortBy]);
+
+  // Đếm tổng số node trong tree (bao gồm cả children)
+  const totalNodeCount = React.useMemo(() => {
+    let count = 0;
+    const countNodes = (nodes: UnitNode[]) => {
+      nodes.forEach((n) => {
+        count++;
+        if (n.children?.length) countNodes(n.children);
+      });
+    };
+    countNodes(tree);
+    return count;
+  }, [tree]);
 
   // Khởi tạo openState: mở tất cả lần đầu
   React.useEffect(() => {
@@ -318,15 +356,73 @@ export function UnitTree({
 
       {searchable && (
         <div className="mb-2 px-2">
-          <input
-            className={cn(
-              "border-border bg-background w-full rounded-md border px-3 py-2 text-sm outline-none",
-              "placeholder:text-muted-foreground focus:ring-ring focus:ring-2",
+          <div className="relative">
+            {/* Search Icon */}
+            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
+              <svg
+                className="h-4 w-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+
+            <input
+              className={cn(
+                "border-border bg-background w-full rounded-md border pl-10 pr-10 py-2 text-sm outline-none",
+                "placeholder:text-muted-foreground focus:ring-ring focus:ring-2",
+              )}
+              placeholder={searchPlaceholder}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+
+            {/* Clear Button */}
+            {query && (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                onClick={() => setQuery("")}
+                title="Xóa tìm kiếm"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
             )}
-            placeholder={searchPlaceholder}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+          </div>
+
+          {/* Result Count */}
+          {query && (
+            <div className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+              {totalNodeCount > 0 ? (
+                <>
+                  Tìm thấy <span className="font-medium">{totalNodeCount}</span> kết quả
+                </>
+              ) : (
+                <span className="text-amber-600 dark:text-amber-400">
+                  Không tìm thấy kết quả
+                </span>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -338,7 +434,7 @@ export function UnitTree({
         <div className="p-3 text-sm text-red-500">Lỗi: {error}</div>
       ) : tree.length === 0 ? (
         <div className="text-muted-foreground p-3 text-sm">
-          Không có dữ liệu
+          {query ? "Không tìm thấy đơn vị nào" : "Không có dữ liệu"}
         </div>
       ) : (
         <div className="max-h-[70vh] overflow-auto pr-1">
@@ -353,6 +449,7 @@ export function UnitTree({
               onToggle={onToggle}
               collapsible={collapsible}
               selectedUnitCode={selectedUnitCode}
+              searchQuery={query}
             />
           ))}
         </div>

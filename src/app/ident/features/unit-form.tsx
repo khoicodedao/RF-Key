@@ -130,7 +130,7 @@ export function UnitFormDialog({
               {...register("unit_name")}
               disabled={isSubmitting}
               className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none ring-0 transition focus:border-gray-400 focus:ring-2 focus:ring-[#5750F1]/30 dark:border-dark-3 dark:bg-gray-900 dark:text-gray-100"
-              placeholder="vd: Phòng Kinh Doanh"
+              placeholder=""
             />
             {errors.unit_name && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400">
