@@ -157,6 +157,9 @@ export default function LicensesPage() {
   const [unitTree, setUnitTree] = React.useState<UnitTreeNode[]>([]);
   const [unitLoading, setUnitLoading] = React.useState(false);
 
+  // 🆕 Search trong tree
+  const [searchTreeQuery, setSearchTreeQuery] = React.useState<string>("");
+
   // xem chi tiết license
   const [viewOpen, setViewOpen] = React.useState(false);
   const [viewItem, setViewItem] = React.useState<License | null>(null);
@@ -185,6 +188,63 @@ export default function LicensesPage() {
     };
     loadUnits();
   }, []);
+
+  // ====== FILTER TREE BY SEARCH ======
+  const filteredTree = React.useMemo(() => {
+    if (!searchTreeQuery.trim()) return unitTree;
+
+    const query = searchTreeQuery.toLowerCase();
+
+    // Helper để check node có match
+    const matchNode = (node: UnitTreeNode): boolean => {
+      const u = node.unit;
+      const nameMatch = u.unit_name?.toLowerCase().includes(query);
+      const codeMatch = u.unit_code?.toLowerCase().includes(query);
+      const fullNameMatch = u.full_name?.toLowerCase().includes(query);
+
+      return !!(nameMatch || codeMatch || fullNameMatch);
+    };
+
+    // Recursive filter giữ lại nodes match và parents của chúng
+    const filterTree = (nodes: UnitTreeNode[]): UnitTreeNode[] => {
+      const result: UnitTreeNode[] = [];
+
+      nodes.forEach((node) => {
+        const children = node.children ? filterTree(node.children) : [];
+        const nodeMatches = matchNode(node);
+
+        // Giữ node nếu: chính nó match HOẶC có children match
+        if (nodeMatches || children.length > 0) {
+          result.push({
+            ...node,
+            children: children.length > 0 ? children : undefined,
+          });
+        }
+      });
+
+      return result;
+    };
+
+    return filterTree(unitTree);
+  }, [unitTree, searchTreeQuery]);
+
+  // Auto expand keys khi search
+  const expandedKeys = React.useMemo(() => {
+    if (!searchTreeQuery.trim()) return [];
+
+    const keys: string[] = [];
+    const collectKeys = (nodes: UnitTreeNode[]) => {
+      nodes.forEach((node) => {
+        keys.push(node.key);
+        if (node.children) collectKeys(node.children);
+      });
+    };
+    collectKeys(filteredTree);
+    return keys;
+  }, [filteredTree, searchTreeQuery]);
+
+  // State để control expand/collapse khi không search
+  const [controlledExpandedKeys, setControlledExpandedKeys] = React.useState<string[]>([]);
 
   // ====== BUILD FILTER ======
   const buildFilter = React.useCallback(() => {
@@ -417,6 +477,19 @@ export default function LicensesPage() {
                 {selectedUnitName}
               </Text>
             )}
+
+            {/* Search input */}
+            <div className="mt-2">
+              <Input
+                allowClear
+                prefix={<SearchOutlined />}
+                placeholder="Tìm đơn vị..."
+                value={searchTreeQuery}
+                onChange={(e) => setSearchTreeQuery(e.target.value)}
+                size="small"
+              />
+            </div>
+
             <div className="mt-2">
               {unitLoading ? (
                 <div className="flex items-center justify-center py-8">
@@ -425,9 +498,16 @@ export default function LicensesPage() {
               ) : (
                 <Tree
                   className="unit-tree"
-                  treeData={unitTree}
-                  defaultExpandAll
-                  // height={500}
+                  treeData={filteredTree}
+                  defaultExpandAll={!searchTreeQuery.trim()}
+                  expandedKeys={searchTreeQuery.trim() ? expandedKeys : controlledExpandedKeys}
+                  onExpand={(keys) => {
+                    // Chỉ update khi không search (user control)
+                    if (!searchTreeQuery.trim()) {
+                      setControlledExpandedKeys(keys as string[]);
+                    }
+                  }}
+                  autoExpandParent={!!searchTreeQuery.trim()}
                   blockNode
                   showLine={{ showLeafIcon: false }}
                   onSelect={(keys, info) => {
@@ -598,9 +678,8 @@ export default function LicensesPage() {
         footer={null}
         title={
           viewItem
-            ? `Chi tiết license: ${
-                viewItem.license || viewItem.unit_code || viewItem.id
-              }`
+            ? `Chi tiết license: ${viewItem.license || viewItem.unit_code || viewItem.id
+            }`
             : "Chi tiết"
         }
         centered
@@ -790,8 +869,8 @@ export default function LicensesPage() {
                 value: viewItem.reissue_count ?? 0,
               },
             ]}
-            // Nếu muốn zebra row:
-            // rowClassName={(_, index) => (index % 2 === 0 ? "bg-gray-50" : "")}
+          // Nếu muốn zebra row:
+          // rowClassName={(_, index) => (index % 2 === 0 ? "bg-gray-50" : "")}
           />
         )}
       </Modal>

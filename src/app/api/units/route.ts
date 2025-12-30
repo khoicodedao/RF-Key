@@ -37,9 +37,41 @@ async function getBearerFromCookies(): Promise<string | null> {
   return null;
 }
 
-// export async function GET() {
-//   return NextResponse.json({ items: units });
-// }
+// GET method for fetching all units (used by UnitTree)
+export async function GET() {
+  try {
+    const cookieBearer = await getBearerFromCookies();
+
+    const response = await axios.post(
+      `${BASE_URL}/api/units/paginate`,
+      {
+        limit: 10000, // Large limit to get all units
+        offset: 0,
+        filter: undefined,
+        sort: "level asc, unit_name asc",
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(cookieBearer ? { Authorization: cookieBearer } : {}),
+        },
+        withCredentials: true,
+      }
+    );
+
+    // Return just the items array for UnitTree
+    return NextResponse.json(response.data.items || []);
+  } catch (error: any) {
+    const status = error.response?.status || 500;
+    const errData = error.response?.data || { message: error.message };
+    console.error("GET /api/units error:", status, errData);
+    return NextResponse.json(
+      { error: errData.message || "Failed to fetch units" },
+      { status }
+    );
+  }
+}
 
 export async function POST(req: Request) {
   try {
